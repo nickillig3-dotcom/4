@@ -1,0 +1,51 @@
+﻿using System;
+using OpenCvSharp;
+
+namespace AutoShortsPro.App.Services
+{
+    public static class VideoProcessor
+    {
+        public static void ProcessVideo(string inputPath, string outputPath, int blurKernel = 35, bool pixelate = false)
+        {
+            using var cap = new VideoCapture(inputPath);
+            if (!cap.IsOpened()) throw new Exception("Video konnte nicht geöffnet werden.");
+
+            int w = (int)cap.FrameWidth;
+            int h = (int)cap.FrameHeight;
+            double fps = cap.Fps > 0 ? cap.Fps : 25;
+
+            using var writer = new VideoWriter(outputPath, FourCC.MP4V, fps, new Size(w, h));
+            if (!writer.IsOpened()) throw new Exception("VideoWriter konnte nicht geöffnet werden.");
+
+            using var frame = new Mat();
+            while (true)
+            {
+                if (!cap.Read(frame) || frame.Empty()) break;
+
+                var rects = BlurEngine.DetectRegions(frame);
+                foreach (var r in rects)
+                {
+                    var safe = new Rect(
+                        Math.Max(0, r.X), Math.Max(0, r.Y),
+                        Math.Min(r.Width, frame.Width - r.X),
+                        Math.Min(r.Height, frame.Height - r.Y));
+
+                    using var sub = new Mat(frame, safe);
+                    if (!pixelate)
+                    {
+                        int k = blurKernel % 2 == 0 ? blurKernel + 1 : blurKernel;
+                        Cv2.GaussianBlur(sub, sub, new Size(k, k), 0);
+                    }
+                    else
+                    {
+                        using var tmp = new Mat();
+                        Cv2.Resize(sub, tmp, new Size(Math.Max(1, sub.Width / 10), Math.Max(1, sub.Height / 10)), 0, 0, InterpolationFlags.Area);
+                        Cv2.Resize(tmp, sub, new Size(sub.Width, sub.Height), 0, 0, InterpolationFlags.Nearest);
+                    }
+                }
+
+                writer.Write(frame);
+            }
+        }
+    }
+}
