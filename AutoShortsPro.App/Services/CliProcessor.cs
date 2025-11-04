@@ -14,6 +14,8 @@ namespace AutoShortsPro.App.Services
             string? licensePath = null;
             bool pixelate = false;
             bool recursive = false;
+            bool facesOnly = false;
+            bool platesOnly = false;
             int kernel = 35;
 
             for (int i = 0; i < args.Length; i++)
@@ -43,6 +45,12 @@ namespace AutoShortsPro.App.Services
                     case "--license":
                         licensePath = Next(args, ref i);
                         break;
+                    case "--faces-only":
+                        facesOnly = true;
+                        break;
+                    case "--plates-only":
+                        platesOnly = true;
+                        break;
                     case "-h":
                     case "--help":
                     case "/?":
@@ -70,6 +78,9 @@ namespace AutoShortsPro.App.Services
             }
 
             bool watermark = !LicenseService.IsPro;
+            bool detectFaces  = !platesOnly;
+            bool detectPlates = !facesOnly;
+
             int ok = 0, fail = 0;
             foreach (var f in files)
             {
@@ -77,9 +88,9 @@ namespace AutoShortsPro.App.Services
                 {
                     var outPath = MakeOutPath(f, outputDir);
                     if (IsVideo(f))
-                        VideoProcessor.ProcessVideo(f, outPath, kernel, pixelate, watermark);
+                        VideoProcessor.ProcessVideo(f, outPath, kernel, pixelate, watermark, detectFaces, detectPlates);
                     else
-                        BlurEngine.ProcessImage(f, outPath, kernel, pixelate, watermark);
+                        BlurEngine.ProcessImage(f, outPath, kernel, pixelate, watermark, detectFaces, detectPlates);
                     ok++;
                     FileLogger.Log($"OK: {f} -> {outPath}");
                 }
@@ -141,10 +152,10 @@ namespace AutoShortsPro.App.Services
         {
             var t = @"GDPR Blur Pro – CLI
 Usage:
-  app.exe --input <file|folder> [--output <folder>] [--pixelate] [--kernel 35] [--recursive] [--license path]
+  app.exe --input <file|folder> [--output <folder>] [--pixelate] [--kernel 35] [--recursive] [--license path] [--faces-only|--plates-only]
 Examples:
   app.exe -i ""C:\media\foto.jpg""
-  app.exe -i ""C:\media\ordner"" -o ""C:\out"" -r --pixelate -k 45 --license C:\key.lic
+  app.exe -i ""C:\media\ordner"" -o ""C:\out"" -r --pixelate -k 45 --license C:\key.lic --faces-only
 Logs: %LOCALAPPDATA%\GDPRBlurPro\logs\app.log";
             try { FileLogger.Log(t); } catch { }
             try { Console.WriteLine(t); } catch { }

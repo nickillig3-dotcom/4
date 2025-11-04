@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
 using AutoShortsPro.App.Services;
-using System.Diagnostics;
 
 namespace AutoShortsPro.App
 {
     public partial class MainWindow : Window
     {
+        private string? _lastOutDir;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -37,6 +39,16 @@ namespace AutoShortsPro.App
                 var dropped = (string[])e.Data.GetData(DataFormats.FileDrop);
                 await ProcessPathsAsync(dropped);
             }
+        }
+
+        private void OpenOut_Click(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(_lastOutDir) && Directory.Exists(_lastOutDir))
+                    Process.Start(new ProcessStartInfo(_lastOutDir!) { UseShellExecute = true });
+            }
+            catch { }
         }
 
         private static bool IsVideo(string path)
@@ -87,6 +99,11 @@ namespace AutoShortsPro.App
             StatusText.Text = $"Starte… (0/{files.Count})";
 
             bool addWatermark = !LicenseService.IsPro;
+            bool facesOnly   = FacesOnlyCheck.IsChecked == true;
+            bool platesOnly  = PlatesOnlyCheck.IsChecked == true;
+            bool detectFaces  = !platesOnly;
+            bool detectPlates = !facesOnly;
+
             int i = 0;
             foreach (var f in files)
             {
@@ -94,9 +111,11 @@ namespace AutoShortsPro.App
                 try
                 {
                     if (IsVideo(f))
-                        await Task.Run(() => VideoProcessor.ProcessVideo(f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark));
+                        await Task.Run(() => VideoProcessor.ProcessVideo(f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark, detectFaces, detectPlates));
                     else
-                        await Task.Run(() => BlurEngine.ProcessImage(f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark));
+                        await Task.Run(() => BlurEngine.ProcessImage(f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark, detectFaces, detectPlates));
+
+                    _lastOutDir = Path.GetDirectoryName(outPath);
                 }
                 catch (Exception)
                 {
@@ -113,7 +132,7 @@ namespace AutoShortsPro.App
 
         private void BuyPro_Click(object sender, RoutedEventArgs e)
         {
-            var url = "https://www.paypal.com/"; // TODO: echten Link einsetzen
+            var url = "https://www.paypal.com/";
             try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch { }
         }
 
