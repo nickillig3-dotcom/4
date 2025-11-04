@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using WpfRectangle = System.Windows.Shapes.Rectangle;
 using System.Windows.Controls;
 // Alias für OpenCvSharp.Rect, keine globale using OpenCvSharp (vermeidet Konflikte)
 using CvRect = OpenCvSharp.Rect;
@@ -18,7 +19,7 @@ namespace AutoShortsPro.App.Views
         private readonly bool _preferDnn;
 
         private System.Windows.Point? _dragStart;
-        private Rectangle? _currentRectShape;
+        private WpfRectangle? _currentRectShape;
 
         public List<CvRect> ResultRects { get; private set; } = new();
 
@@ -76,7 +77,7 @@ namespace AutoShortsPro.App.Views
             CaptureMouse();
         }
 
-        private void Overlay_MouseMove(object sender, MouseEventArgs e)
+        private void Overlay_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
             if (_dragStart == null || _currentRectShape == null) return;
             var p0 = _dragStart.Value;
@@ -111,8 +112,8 @@ namespace AutoShortsPro.App.Views
         private void Overlay_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             var hit = e.OriginalSource as DependencyObject;
-            while (hit != null && hit is not Rectangle) hit = VisualTreeHelper.GetParent(hit);
-            if (hit is Rectangle rect)
+            while (hit != null && hit is not WpfRectangle) hit = VisualTreeHelper.GetParent(hit);
+            if (hit is WpfRectangle rect)
             {
                 Overlay.Children.Remove(rect);
                 UpdateCount();
@@ -154,4 +155,5 @@ namespace AutoShortsPro.App.Views
         }
     }
 }
+
 

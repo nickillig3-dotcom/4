@@ -61,7 +61,7 @@ namespace AutoShortsPro.App
             }
         }
 
-        private async void MainWindow_Drop(object sender, DragEventArgs e)
+        private async void MainWindow_Drop(object sender, System.Windows.DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -224,3 +224,4 @@ namespace AutoShortsPro.App
         }
     }
 }
+
