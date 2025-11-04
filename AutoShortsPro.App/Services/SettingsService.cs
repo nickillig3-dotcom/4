@@ -12,6 +12,7 @@ namespace AutoShortsPro.App.Services
             public bool Pixelate { get; set; } = false;
             public bool PreferDnn { get; set; } = false;
             public bool ReviewImages { get; set; } = false;
+            public string? OutputDir { get; set; } = null; // leer/null = gleicher Ordner wie Eingabe
         }
 
         private static string Dir  => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GDPRBlurPro");

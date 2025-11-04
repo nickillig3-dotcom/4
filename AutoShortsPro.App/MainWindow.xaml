@@ -1,7 +1,7 @@
 ﻿<Window x:Class="AutoShortsPro.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="GDPR Blur Pro" Height="560" Width="880"
+        Title="GDPR Blur Pro" Height="600" Width="920"
         AllowDrop="True" Drop="MainWindow_Drop">
   <DockPanel LastChildFill="True">
     <Menu DockPanel.Dock="Top">
@@ -23,6 +23,15 @@
           <CheckBox x:Name="DnnFaceCheck" Content="Besseres Gesicht (DNN)" Margin="16,0,0,0"/>
           <CheckBox x:Name="ReviewImagesCheck" Content="Manuell prüfen (Bilder)" Margin="16,0,0,0"/>
         </StackPanel>
+
+        <!-- NEU: Ausgabeordner -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <TextBlock Text="Ausgabeordner:" VerticalAlignment="Center" Width="110"/>
+          <TextBox x:Name="OutDirBox" Width="520" Margin="8,0,0,0" ToolTip="Leer lassen = Ausgabedatei neben Eingabedatei"/>
+          <Button Content="Durchsuchen…" Width="120" Margin="8,0,0,0" Click="BrowseOutDir_Click"/>
+          <Button Content="Leeren" Width="80" Margin="8,0,0,0" Click="ClearOutDir_Click" ToolTip="Leeren = gleicher Ordner wie Eingabe"/>
+        </StackPanel>
+
         <Button x:Name="PickFilesBtn" Content="Dateien auswählen…" Width="180" Click="PickFiles_Click"/>
         <ProgressBar x:Name="Progress" Height="16" Minimum="0" Maximum="100" Margin="0,12,0,0"/>
         <TextBlock x:Name="StatusText" Margin="0,6,0,0" />

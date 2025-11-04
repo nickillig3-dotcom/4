@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
 using AutoShortsPro.App.Services;
+using WinForms = System.Windows.Forms;
 
 namespace AutoShortsPro.App
 {
@@ -15,7 +17,6 @@ namespace AutoShortsPro.App
         {
             InitializeComponent();
 
-            // Einstellungen laden
             try
             {
                 var s = SettingsService.Load();
@@ -23,6 +24,7 @@ namespace AutoShortsPro.App
                 PixelateCheck.IsChecked = s.Pixelate;
                 DnnFaceCheck.IsChecked = s.PreferDnn;
                 ReviewImagesCheck.IsChecked = s.ReviewImages;
+                OutDirBox.Text = s.OutputDir ?? string.Empty;
             }
             catch { }
 
@@ -38,7 +40,8 @@ namespace AutoShortsPro.App
                     BlurKernel = (int)BlurSlider.Value,
                     Pixelate = PixelateCheck.IsChecked == true,
                     PreferDnn = DnnFaceCheck.IsChecked == true,
-                    ReviewImages = ReviewImagesCheck.IsChecked == true
+                    ReviewImages = ReviewImagesCheck.IsChecked == true,
+                    OutputDir = string.IsNullOrWhiteSpace(OutDirBox.Text) ? null : OutDirBox.Text
                 };
                 SettingsService.Save(s);
             }
@@ -65,6 +68,26 @@ namespace AutoShortsPro.App
                 var dropped = (string[])e.Data.GetData(DataFormats.FileDrop);
                 await ProcessPathsAsync(dropped);
             }
+        }
+
+        private void BrowseOutDir_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                using var fb = new WinForms.FolderBrowserDialog();
+                fb.Description = "Ausgabeordner wählen (leer lassen = neben Eingabedatei)";
+                fb.ShowNewFolderButton = true;
+                if (fb.ShowDialog() == WinForms.DialogResult.OK)
+                {
+                    OutDirBox.Text = fb.SelectedPath;
+                }
+            }
+            catch { }
+        }
+
+        private void ClearOutDir_Click(object sender, RoutedEventArgs e)
+        {
+            OutDirBox.Text = string.Empty;
         }
 
         private static bool IsVideo(string path)
@@ -94,9 +117,12 @@ namespace AutoShortsPro.App
             }
         }
 
-        private static string GetOutPath(string inputPath)
+        private static string GetOutPath(string inputPath, string? overrideDir)
         {
-            var dir = Path.GetDirectoryName(inputPath) ?? Environment.CurrentDirectory;
+            var dir = string.IsNullOrWhiteSpace(overrideDir)
+                ? (Path.GetDirectoryName(inputPath) ?? Environment.CurrentDirectory)
+                : overrideDir!;
+            Directory.CreateDirectory(dir);
             var fn = Path.GetFileNameWithoutExtension(inputPath);
             var ext = Path.GetExtension(inputPath);
             return Path.Combine(dir, fn + "_blurred" + ext);
@@ -117,11 +143,12 @@ namespace AutoShortsPro.App
             bool addWatermark = !LicenseService.IsPro;
             bool preferDnn    = DnnFaceCheck.IsChecked == true;
             bool reviewImages = ReviewImagesCheck.IsChecked == true;
+            string? outDir    = string.IsNullOrWhiteSpace(OutDirBox.Text) ? null : OutDirBox.Text;
 
             int i = 0;
             foreach (var f in files)
             {
-                var outPath = GetOutPath(f);
+                var outPath = GetOutPath(f, outDir);
                 try
                 {
                     if (IsVideo(f))
@@ -170,7 +197,7 @@ namespace AutoShortsPro.App
         private void BuyPro_Click(object sender, RoutedEventArgs e)
         {
             var url = "https://www.paypal.com/";
-            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); } catch { }
+            try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch { }
         }
 
         private void LoadLicense_Click(object sender, RoutedEventArgs e)
