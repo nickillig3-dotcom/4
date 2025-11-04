@@ -6,19 +6,20 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using OpenCvSharp;
+// Alias für OpenCvSharp.Rect, keine globale using OpenCvSharp (vermeidet Konflikte)
+using CvRect = OpenCvSharp.Rect;
 
 namespace AutoShortsPro.App.Views
 {
-    public partial class ImageReviewWindow : Window
+    public partial class ImageReviewWindow : System.Windows.Window
     {
         private readonly string _path;
         private readonly bool _preferDnn;
 
-        private Point? _dragStart;
+        private System.Windows.Point? _dragStart;
         private Rectangle? _currentRectShape;
 
-        public List<Rect> ResultRects { get; private set; } = new();
+        public List<CvRect> ResultRects { get; private set; } = new();
 
         public ImageReviewWindow(string imagePath, bool preferDnn)
         {
@@ -38,7 +39,7 @@ namespace AutoShortsPro.App.Views
 
             try
             {
-                using var m = Cv2.ImRead(imagePath);
+                using var m = OpenCvSharp.Cv2.ImRead(imagePath);
                 var boxes = Services.BlurEngine.DetectRegions(m, _preferDnn);
                 foreach (var r in boxes) AddRectShape(r);
                 UpdateCount();
@@ -46,7 +47,7 @@ namespace AutoShortsPro.App.Views
             catch { }
         }
 
-        private void AddRectShape(Rect r)
+        private void AddRectShape(CvRect r)
         {
             var shape = new Rectangle
             {
@@ -123,9 +124,9 @@ namespace AutoShortsPro.App.Views
             CountText.Text = $"Boxen: {n}";
         }
 
-        private List<Rect> CollectRects()
+        private List<CvRect> CollectRects()
         {
-            var list = new List<Rect>();
+            var list = new List<CvRect>();
             foreach (var s in Overlay.Children.OfType<Rectangle>())
             {
                 var x = (int)Math.Round(Canvas.GetLeft(s));
@@ -133,7 +134,7 @@ namespace AutoShortsPro.App.Views
                 var w = (int)Math.Round(s.Width);
                 var h = (int)Math.Round(s.Height);
                 if (w > 2 && h > 2)
-                    list.Add(new Rect(x, y, w, h));
+                    list.Add(new CvRect(x, y, w, h));
             }
             return list;
         }
