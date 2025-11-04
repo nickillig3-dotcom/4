@@ -46,7 +46,7 @@ namespace AutoShortsPro.App.Services
             Cv2.ImWrite(outputPath, img);
         }
 
-        // NEU: Verarbeitung mit VORGEGEBENEN Boxen (für das Review-Fenster)
+        // Verarbeitung mit vom UI vorgegebenen Boxen (für manuelle Bildprüfung)
         public static void ProcessImageWithRects(
             string inputPath,
             string outputPath,
@@ -68,12 +68,14 @@ namespace AutoShortsPro.App.Services
             Cv2.ImWrite(outputPath, img);
         }
 
-        // Aktuelle Erkennung (DNN-Face optional, plus Nummernschilder via Haar)
+        // Erkennung (DNN-Face optional, Kennzeichen via Haar)
         public static List<Rect> DetectRegions(Mat frame, bool preferDnnFaces = false)
         {
-            var faces = preferDnnFaces && File.Exists(FaceProto) && File.Exists(FaceModel)
-                ? DetectFacesDnn(frame, 0.5f)
-                : FaceCascade.Value.DetectMultiScale(ToGray(frame), 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24));
+            Rect[] faces;
+            if (preferDnnFaces && File.Exists(FaceProto) && File.Exists(FaceModel))
+                faces = DetectFacesDnn(frame, 0.5f);
+            else
+                faces = FaceCascade.Value.DetectMultiScale(ToGray(frame), 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24));
 
             var plates = PlateCascade.Value.DetectMultiScale(ToGray(frame), 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24));
 
@@ -93,11 +95,12 @@ namespace AutoShortsPro.App.Services
 
         private static Rect[] DetectFacesDnn(Mat frame, float confThresh)
         {
-            _faceDnn ??= CvDnn.ReadNetFromCaffe(FaceProto, FaceModel);
+            var net = _faceDnn ??= CvDnn.ReadNetFromCaffe(FaceProto, FaceModel);
+            if (net is null) throw new Exception("Face-DNN konnte nicht geladen werden.");
 
             using var blob = CvDnn.BlobFromImage(frame, 1.0, new Size(300, 300), new Scalar(104, 177, 123), false, false);
-            _faceDnn.SetInput(blob);
-            using var prob = _faceDnn.Forward(); // 1x1xNx7
+            net.SetInput(blob);
+            using var prob = net.Forward(); // 1x1xNx7
 
             using var det = prob.Reshape(1, (int)prob.Total() / 7); // Nx7
             var faces = new List<Rect>(det.Rows);
