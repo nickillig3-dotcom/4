@@ -63,9 +63,9 @@ namespace AutoShortsPro.App
 
         private async void MainWindow_Drop(object sender, System.Windows.DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
             {
-                var dropped = (string[])e.Data.GetData(DataFormats.FileDrop);
+                var dropped = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
                 await ProcessPathsAsync(dropped);
             }
         }
@@ -191,7 +191,7 @@ namespace AutoShortsPro.App
                 StatusText.Text = $"Fertig: {i}/{files.Count}";
             }
 
-            MessageBox.Show("Verarbeitung abgeschlossen.", "GDPR Blur Pro");
+            System.Windows.MessageBox.Show("Verarbeitung abgeschlossen.", "GDPR Blur Pro");
         }
 
         private void BuyPro_Click(object sender, RoutedEventArgs e)
@@ -206,9 +206,9 @@ namespace AutoShortsPro.App
             if (dlg.ShowDialog() == true)
             {
                 if (LicenseService.LoadAndVerify(dlg.FileName))
-                    MessageBox.Show("Lizenz akzeptiert. Pro aktiviert.", "Lizenz");
+                    System.Windows.MessageBox.Show("Lizenz akzeptiert. Pro aktiviert.", "Lizenz");
                 else
-                    MessageBox.Show("Lizenz ungültig.", "Lizenz", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Windows.MessageBox.Show("Lizenz ungültig.", "Lizenz", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -218,10 +218,11 @@ namespace AutoShortsPro.App
             {
                 var asm = System.Reflection.Assembly.GetExecutingAssembly();
                 var ver = asm.GetName().Version?.ToString() ?? "n/a";
-                MessageBox.Show($"GDPR Blur Pro\nVersion {ver}\n© 2025", "Über");
+                System.Windows.MessageBox.Show($"GDPR Blur Pro\nVersion {ver}\n© 2025", "Über");
             }
             catch { }
         }
     }
 }
+
 

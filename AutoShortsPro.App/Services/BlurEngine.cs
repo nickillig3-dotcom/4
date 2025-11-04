@@ -75,9 +75,9 @@ namespace AutoShortsPro.App.Services
             if (preferDnnFaces && File.Exists(FaceProto) && File.Exists(FaceModel))
                 faces = DetectFacesDnn(frame, 0.5f);
             else
-                faces = FaceCascade.Value.DetectMultiScale(ToGray(frame), 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24));
+                faces = FaceCascade.Value.DetectMultiScale(ToGray(frame), 1.1, 4, HaarDetectionTypes.ScaleImage, new OpenCvSharp.Size(24, 24));
 
-            var plates = PlateCascade.Value.DetectMultiScale(ToGray(frame), 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24));
+            var plates = PlateCascade.Value.DetectMultiScale(ToGray(frame), 1.1, 4, HaarDetectionTypes.ScaleImage, new OpenCvSharp.Size(24, 24));
 
             var result = new List<Rect>(faces.Length + plates.Length);
             result.AddRange(faces);
@@ -98,7 +98,7 @@ namespace AutoShortsPro.App.Services
             var net = _faceDnn ??= CvDnn.ReadNetFromCaffe(FaceProto, FaceModel);
             if (net is null) throw new Exception("Face-DNN konnte nicht geladen werden.");
 
-            using var blob = CvDnn.BlobFromImage(frame, 1.0, new Size(300, 300), new Scalar(104, 177, 123), false, false);
+            using var blob = CvDnn.BlobFromImage(frame, 1.0, new OpenCvSharp.Size(300, 300), new Scalar(104, 177, 123), false, false);
             net.SetInput(blob);
             using var prob = net.Forward(); // 1x1xNx7
 
@@ -139,14 +139,15 @@ namespace AutoShortsPro.App.Services
             if (!pixelate)
             {
                 int k = blurKernel % 2 == 0 ? blurKernel + 1 : blurKernel;
-                Cv2.GaussianBlur(sub, sub, new Size(k, k), 0);
+                Cv2.GaussianBlur(sub, sub, new OpenCvSharp.Size(k, k), 0);
             }
             else
             {
                 using var tmp = new Mat();
-                Cv2.Resize(sub, tmp, new Size(Math.Max(1, sub.Width / 10), Math.Max(1, sub.Height / 10)), 0, 0, InterpolationFlags.Area);
-                Cv2.Resize(tmp, sub, new Size(sub.Width, sub.Height), 0, 0, InterpolationFlags.Nearest);
+                Cv2.Resize(sub, tmp, new OpenCvSharp.Size(Math.Max(1, sub.Width / 10), Math.Max(1, sub.Height / 10)), 0, 0, InterpolationFlags.Area);
+                Cv2.Resize(tmp, sub, new OpenCvSharp.Size(sub.Width, sub.Height), 0, 0, InterpolationFlags.Nearest);
             }
         }
     }
 }
+

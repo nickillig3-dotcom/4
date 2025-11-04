@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using SWM = System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using WpfRectangle = System.Windows.Shapes.Rectangle;
@@ -55,9 +56,9 @@ namespace AutoShortsPro.App.Views
             {
                 Width = r.Width,
                 Height = r.Height,
-                Stroke = Brushes.Yellow,
+                Stroke = SWM.Brushes.Yellow,
                 StrokeThickness = 2,
-                Fill = new SolidColorBrush(Color.FromArgb(40, 255, 255, 0))
+                Fill = new SWM.SolidColorBrush(SWM.Color.FromArgb(40, 255, 255, 0))
             };
             Canvas.SetLeft(shape, r.X);
             Canvas.SetTop(shape, r.Y);
@@ -69,9 +70,9 @@ namespace AutoShortsPro.App.Views
             _dragStart = e.GetPosition(Overlay);
             _currentRectShape = new Rectangle
             {
-                Stroke = Brushes.DeepSkyBlue,
+                Stroke = SWM.Brushes.DeepSkyBlue,
                 StrokeThickness = 2,
-                Fill = new SolidColorBrush(Color.FromArgb(40, 30, 144, 255))
+                Fill = new SWM.SolidColorBrush(SWM.Color.FromArgb(40, 30, 144, 255))
             };
             Overlay.Children.Add(_currentRectShape);
             CaptureMouse();
@@ -100,8 +101,8 @@ namespace AutoShortsPro.App.Views
         {
             if (_dragStart == null || _currentRectShape == null) { ReleaseMouseCapture(); return; }
 
-            _currentRectShape.Stroke = Brushes.Yellow;
-            _currentRectShape.Fill = new SolidColorBrush(Color.FromArgb(40, 255, 255, 0));
+            _currentRectShape.Stroke = SWM.Brushes.Yellow;
+            _currentRectShape.Fill = new SWM.SolidColorBrush(SWM.Color.FromArgb(40, 255, 255, 0));
 
             _dragStart = null;
             _currentRectShape = null;
@@ -155,5 +156,6 @@ namespace AutoShortsPro.App.Views
         }
     }
 }
+
 
 

@@ -16,7 +16,7 @@ namespace AutoShortsPro.App.Services
             double fps = cap.Fps > 0 ? cap.Fps : 25;
 
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-            using var writer = new VideoWriter(outputPath, FourCC.MP4V, fps, new Size(w, h));
+            using var writer = new VideoWriter(outputPath, FourCC.MP4V, fps, new OpenCvSharp.Size(w, h));
             if (!writer.IsOpened()) throw new Exception("VideoWriter konnte nicht geöffnet werden. Codec/Container nicht verfügbar.");
 
             using var frame = new Mat();
@@ -31,12 +31,12 @@ namespace AutoShortsPro.App.Services
                         Math.Min(r.Width, frame.Width - r.X),
                         Math.Min(r.Height, frame.Height - r.Y));
                     using var sub = new Mat(frame, safe);
-                    if (!pixelate) Cv2.GaussianBlur(sub, sub, new Size(k, k), 0);
+                    if (!pixelate) Cv2.GaussianBlur(sub, sub, new OpenCvSharp.Size(k, k), 0);
                     else
                     {
                         using var tmp = new Mat();
-                        Cv2.Resize(sub, tmp, new Size(Math.Max(1, sub.Width / 10), Math.Max(1, sub.Height / 10)), 0, 0, InterpolationFlags.Area);
-                        Cv2.Resize(tmp, sub, new Size(sub.Width, sub.Height), 0, 0, InterpolationFlags.Nearest);
+                        Cv2.Resize(sub, tmp, new OpenCvSharp.Size(Math.Max(1, sub.Width / 10), Math.Max(1, sub.Height / 10)), 0, 0, InterpolationFlags.Area);
+                        Cv2.Resize(tmp, sub, new OpenCvSharp.Size(sub.Width, sub.Height), 0, 0, InterpolationFlags.Nearest);
                     }
                 }
 
@@ -47,3 +47,4 @@ namespace AutoShortsPro.App.Services
         }
     }
 }
+
