@@ -30,8 +30,12 @@ namespace AutoShortsPro.App.Services
                         Math.Max(0, r.X), Math.Max(0, r.Y),
                         Math.Min(r.Width, frame.Width - r.X),
                         Math.Min(r.Height, frame.Height - r.Y));
+
                     using var sub = new Mat(frame, safe);
-                    if (!pixelate) Cv2.GaussianBlur(sub, sub, new Size(k, k), 0);
+                    if (!pixelate)
+                    {
+                        Cv2.GaussianBlur(sub, sub, new Size(k, k), 0);
+                    }
                     else
                     {
                         using var tmp = new Mat();
@@ -39,6 +43,7 @@ namespace AutoShortsPro.App.Services
                         Cv2.Resize(tmp, sub, new Size(sub.Width, sub.Height), 0, 0, InterpolationFlags.Nearest);
                     }
                 }
+
                 writer.Write(frame);
             }
         }

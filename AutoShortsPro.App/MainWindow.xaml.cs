@@ -96,10 +96,9 @@ namespace AutoShortsPro.App
                     else
                         await Task.Run(() => BlurEngine.ProcessImage(f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true));
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    // optional: Logging
-                    _ = ex;
+                    StatusText.Text = $"Fehler bei: {System.IO.Path.GetFileName(f)}";
                 }
 
                 i++;
