@@ -1,13 +1,23 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
+﻿using System.Windows;
+using AutoShortsPro.App.Services;
 
-namespace AutoShortsPro.App;
-
-/// <summary>
-/// Interaction logic for App.xaml
-/// </summary>
-public partial class App : Application
+namespace AutoShortsPro.App
 {
-}
+    public partial class App : Application
+    {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
 
+            if (e.Args != null && e.Args.Length > 0)
+            {
+                int code = CliProcessor.Run(e.Args);
+                Shutdown(code);
+                return;
+            }
+
+            var w = new MainWindow();
+            w.Show();
+        }
+    }
+}
