@@ -1,41 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using OpenCvSharp;
 
 namespace AutoShortsPro.App.Services
 {
     public static class BlurEngine
     {
-        private static readonly CascadeClassifier FaceCascade =
-            new CascadeClassifier(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "cascades", "haarcascade_frontalface_default.xml"));
+        private static readonly string CascadeDir =
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "cascades");
 
-        private static readonly CascadeClassifier PlateCascade =
-            new CascadeClassifier(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "cascades", "haarcascade_russian_plate_number.xml"));
+        private static readonly Lazy<CascadeClassifier> FaceCascade = new Lazy<CascadeClassifier>(() =>
+            new CascadeClassifier(Path.Combine(CascadeDir, "haarcascade_frontalface_default.xml")));
+
+        private static readonly Lazy<CascadeClassifier> PlateCascade = new Lazy<CascadeClassifier>(() =>
+            new CascadeClassifier(Path.Combine(CascadeDir, "haarcascade_russian_plate_number.xml")));
 
         public static void ProcessImage(string inputPath, string outputPath, int blurKernel = 35, bool pixelate = false)
         {
             using var img = Cv2.ImRead(inputPath);
-            if (img.Empty()) throw new Exception("Bild konnte nicht geladen werden.");
+            if (img.Empty()) throw new Exception("Bild konnte nicht geladen werden: " + inputPath);
 
             var rects = DetectRegions(img);
             foreach (var r in rects)
                 ApplyBlur(img, r, blurKernel, pixelate);
 
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
             Cv2.ImWrite(outputPath, img);
         }
 
         public static List<Rect> DetectRegions(Mat frame)
         {
+            if (!File.Exists(Path.Combine(CascadeDir, "haarcascade_frontalface_default.xml")) ||
+                !File.Exists(Path.Combine(CascadeDir, "haarcascade_russian_plate_number.xml")))
+                throw new FileNotFoundException(@"Cascade XMLs fehlen in Assets\cascades");
+
             using var gray = new Mat();
             Cv2.CvtColor(frame, gray, ColorConversionCodes.BGR2GRAY);
             Cv2.EqualizeHist(gray, gray);
 
-            var faces = FaceCascade.DetectMultiScale(gray, 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24));
-            var plates = PlateCascade.DetectMultiScale(gray, 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24));
+            var faces = FaceCascade.Value.DetectMultiScale(gray, 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24));
+            var plates = PlateCascade.Value.DetectMultiScale(gray, 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24));
 
-            return faces.Concat(plates).ToList();
+            var result = new List<Rect>(faces.Length + plates.Length);
+            result.AddRange(faces);
+            result.AddRange(plates);
+            return result;
         }
 
         private static void ApplyBlur(Mat img, Rect roi, int blurKernel, bool pixelate)

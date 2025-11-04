@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using OpenCvSharp;
 
 namespace AutoShortsPro.App.Services
@@ -8,34 +9,29 @@ namespace AutoShortsPro.App.Services
         public static void ProcessVideo(string inputPath, string outputPath, int blurKernel = 35, bool pixelate = false)
         {
             using var cap = new VideoCapture(inputPath);
-            if (!cap.IsOpened()) throw new Exception("Video konnte nicht geöffnet werden.");
+            if (!cap.IsOpened()) throw new Exception("Video konnte nicht geöffnet werden: " + inputPath);
 
             int w = (int)cap.FrameWidth;
             int h = (int)cap.FrameHeight;
             double fps = cap.Fps > 0 ? cap.Fps : 25;
 
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
             using var writer = new VideoWriter(outputPath, FourCC.MP4V, fps, new Size(w, h));
-            if (!writer.IsOpened()) throw new Exception("VideoWriter konnte nicht geöffnet werden.");
+            if (!writer.IsOpened()) throw new Exception("VideoWriter konnte nicht geöffnet werden. Codec/Container nicht verfügbar.");
 
             using var frame = new Mat();
-            while (true)
+            while (cap.Read(frame))
             {
-                if (!cap.Read(frame) || frame.Empty()) break;
-
                 var rects = BlurEngine.DetectRegions(frame);
                 foreach (var r in rects)
                 {
+                    int k = blurKernel % 2 == 0 ? blurKernel + 1 : blurKernel;
                     var safe = new Rect(
                         Math.Max(0, r.X), Math.Max(0, r.Y),
                         Math.Min(r.Width, frame.Width - r.X),
                         Math.Min(r.Height, frame.Height - r.Y));
-
                     using var sub = new Mat(frame, safe);
-                    if (!pixelate)
-                    {
-                        int k = blurKernel % 2 == 0 ? blurKernel + 1 : blurKernel;
-                        Cv2.GaussianBlur(sub, sub, new Size(k, k), 0);
-                    }
+                    if (!pixelate) Cv2.GaussianBlur(sub, sub, new Size(k, k), 0);
                     else
                     {
                         using var tmp = new Mat();
@@ -43,7 +39,6 @@ namespace AutoShortsPro.App.Services
                         Cv2.Resize(tmp, sub, new Size(sub.Width, sub.Height), 0, 0, InterpolationFlags.Nearest);
                     }
                 }
-
                 writer.Write(frame);
             }
         }
