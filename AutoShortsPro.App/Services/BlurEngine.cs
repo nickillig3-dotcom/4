@@ -2,13 +2,19 @@
 using System.Collections.Generic;
 using System.IO;
 using OpenCvSharp;
+using OpenCvSharp.Dnn;
 
 namespace AutoShortsPro.App.Services
 {
     public static class BlurEngine
     {
-        private static readonly string CascadeDir =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "cascades");
+        private static readonly string BaseDir     = AppDomain.CurrentDomain.BaseDirectory;
+        private static readonly string CascadeDir  =
+            Path.Combine(BaseDir, "Assets", "cascades");
+        private static readonly string FaceProto   =
+            Path.Combine(BaseDir, "Assets", "models", "face_ssd", "deploy.prototxt");
+        private static readonly string FaceModel   =
+            Path.Combine(BaseDir, "Assets", "models", "face_ssd", "res10_300x300_ssd_iter_140000.caffemodel");
 
         private static readonly Lazy<CascadeClassifier> FaceCascade = new(() =>
             new CascadeClassifier(Path.Combine(CascadeDir, "haarcascade_frontalface_default.xml")));
@@ -16,19 +22,20 @@ namespace AutoShortsPro.App.Services
         private static readonly Lazy<CascadeClassifier> PlateCascade = new(() =>
             new CascadeClassifier(Path.Combine(CascadeDir, "haarcascade_russian_plate_number.xml")));
 
+        private static Net? _faceDnn;
+
         public static void ProcessImage(
             string inputPath,
             string outputPath,
             int blurKernel = 35,
             bool pixelate = false,
             bool trialWatermark = false,
-            bool detectFaces = true,
-            bool detectPlates = true)
+            bool preferDnnFaces = false)
         {
             using var img = Cv2.ImRead(inputPath);
             if (img.Empty()) throw new Exception("Bild konnte nicht geladen werden: " + inputPath);
 
-            var rects = DetectRegions(img, detectFaces, detectPlates);
+            var rects = DetectRegions(img, preferDnnFaces);
             foreach (var r in rects)
                 ApplyBlur(img, r, blurKernel, pixelate);
 
@@ -38,19 +45,60 @@ namespace AutoShortsPro.App.Services
             Cv2.ImWrite(outputPath, img);
         }
 
-        public static List<Rect> DetectRegions(Mat frame, bool detectFaces = true, bool detectPlates = true)
+        public static List<Rect> DetectRegions(Mat frame, bool preferDnnFaces = false)
         {
-            using var gray = new Mat();
-            Cv2.CvtColor(frame, gray, ColorConversionCodes.BGR2GRAY);
-            Cv2.EqualizeHist(gray, gray);
+            var faces = preferDnnFaces && File.Exists(FaceProto) && File.Exists(FaceModel)
+                ? DetectFacesDnn(frame, 0.5f)
+                : FaceCascade.Value.DetectMultiScale(ToGray(frame), 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24));
 
-            var faces  = detectFaces  ? FaceCascade.Value.DetectMultiScale(gray, 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24)) : Array.Empty<Rect>();
-            var plates = detectPlates ? PlateCascade.Value.DetectMultiScale(gray, 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24)) : Array.Empty<Rect>();
+            var plates = PlateCascade.Value.DetectMultiScale(ToGray(frame), 1.1, 4, HaarDetectionTypes.ScaleImage, new Size(24, 24));
 
             var result = new List<Rect>(faces.Length + plates.Length);
             result.AddRange(faces);
             result.AddRange(plates);
             return result;
+        }
+
+        private static Mat ToGray(Mat bgr)
+        {
+            var gray = new Mat();
+            Cv2.CvtColor(bgr, gray, ColorConversionCodes.BGR2GRAY);
+            Cv2.EqualizeHist(gray, gray);
+            return gray;
+        }
+
+        private static Rect[] DetectFacesDnn(Mat frame, float confThresh)
+        {
+            _faceDnn ??= CvDnn.ReadNetFromCaffe(FaceProto, FaceModel);
+
+            using var blob = CvDnn.BlobFromImage(frame, 1.0, new Size(300, 300), new Scalar(104, 177, 123), false, false);
+            _faceDnn.SetInput(blob);
+            using var prob = _faceDnn.Forward(); // 1x1xNx7
+
+            using var det = prob.Reshape(1, (int)prob.Total() / 7); // Nx7
+            var faces = new List<Rect>(det.Rows);
+
+            for (int i = 0; i < det.Rows; i++)
+            {
+                float confidence = det.At<float>(i, 2);
+                if (confidence < confThresh) continue;
+
+                int x1 = (int)(det.At<float>(i, 3) * frame.Cols);
+                int y1 = (int)(det.At<float>(i, 4) * frame.Rows);
+                int x2 = (int)(det.At<float>(i, 5) * frame.Cols);
+                int y2 = (int)(det.At<float>(i, 6) * frame.Rows);
+
+                x1 = Math.Max(0, Math.Min(x1, frame.Cols - 1));
+                y1 = Math.Max(0, Math.Min(y1, frame.Rows - 1));
+                x2 = Math.Max(0, Math.Min(x2, frame.Cols - 1));
+                y2 = Math.Max(0, Math.Min(y2, frame.Rows - 1));
+
+                int w = Math.Max(0, x2 - x1);
+                int h = Math.Max(0, y2 - y1);
+                if (w > 0 && h > 0) faces.Add(new Rect(x1, y1, w, h));
+            }
+
+            return faces.ToArray();
         }
 
         private static void ApplyBlur(Mat img, Rect roi, int blurKernel, bool pixelate)

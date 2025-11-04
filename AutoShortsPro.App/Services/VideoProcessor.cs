@@ -6,14 +6,7 @@ namespace AutoShortsPro.App.Services
 {
     public static class VideoProcessor
     {
-        public static void ProcessVideo(
-            string inputPath,
-            string outputPath,
-            int blurKernel = 35,
-            bool pixelate = false,
-            bool trialWatermark = false,
-            bool detectFaces = true,
-            bool detectPlates = true)
+        public static void ProcessVideo(string inputPath, string outputPath, int blurKernel = 35, bool pixelate = false, bool trialWatermark = false, bool preferDnnFaces = false)
         {
             using var cap = new VideoCapture(inputPath);
             if (!cap.IsOpened()) throw new Exception("Video konnte nicht geöffnet werden: " + inputPath);
@@ -23,33 +16,13 @@ namespace AutoShortsPro.App.Services
             double fps = cap.Fps > 0 ? cap.Fps : 25;
 
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-
-            string actualOut = outputPath;
-            int fourcc = PickFourCC(Path.GetExtension(outputPath));
-            VideoWriter? writer = null;
-
-            try
-            {
-                writer = new VideoWriter(actualOut, fourcc, fps, new Size(w, h));
-            }
-            catch { }
-
-            if (writer == null || !writer.IsOpened())
-            {
-                actualOut = Path.Combine(
-                    Path.GetDirectoryName(outputPath)!,
-                    Path.GetFileNameWithoutExtension(outputPath) + "_reencoded.avi");
-
-                writer?.Dispose();
-                writer = new VideoWriter(actualOut, FourCC.XVID, fps, new Size(w, h));
-                if (!writer.IsOpened())
-                    throw new Exception("VideoWriter konnte nicht geöffnet werden (auch AVI/XVID fehlgeschlagen).");
-            }
+            using var writer = new VideoWriter(outputPath, FourCC.MP4V, fps, new Size(w, h));
+            if (!writer.IsOpened()) throw new Exception("VideoWriter konnte nicht geöffnet werden. Codec/Container nicht verfügbar.");
 
             using var frame = new Mat();
             while (cap.Read(frame))
             {
-                var rects = BlurEngine.DetectRegions(frame, detectFaces, detectPlates);
+                var rects = BlurEngine.DetectRegions(frame, preferDnnFaces);
                 foreach (var r in rects)
                 {
                     int k = blurKernel % 2 == 0 ? blurKernel + 1 : blurKernel;
@@ -71,17 +44,6 @@ namespace AutoShortsPro.App.Services
 
                 writer.Write(frame);
             }
-
-            writer.Release();
-            writer.Dispose();
-        }
-
-        private static int PickFourCC(string ext)
-        {
-            ext = (ext ?? "").ToLowerInvariant();
-            if (ext == ".mp4" || ext == ".mov") return FourCC.MP4V;
-            if (ext == ".avi") return FourCC.XVID;
-            return FourCC.MJPG;
         }
     }
 }

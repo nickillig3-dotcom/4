@@ -17,15 +17,9 @@
           <TextBlock Text="Blur:" VerticalAlignment="Center"/>
           <Slider x:Name="BlurSlider" Minimum="11" Maximum="71" Value="35" Width="240" Margin="8,0,0,0"/>
           <CheckBox x:Name="PixelateCheck" Content="Pixelate statt Blur" Margin="16,0,0,0"/>
+          <CheckBox x:Name="DnnFaceCheck" Content="Besseres Gesicht (DNN)" Margin="16,0,0,0"/>
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-          <CheckBox x:Name="FacesOnlyCheck" Content="Nur Gesichter" Margin="0,0,12,0"/>
-          <CheckBox x:Name="PlatesOnlyCheck" Content="Nur Kennzeichen"/>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-          <Button x:Name="PickFilesBtn" Content="Dateien auswählen…" Width="180" Click="PickFiles_Click" Margin="0,0,12,0"/>
-          <Button x:Name="OpenOutBtn" Content="Ausgabeordner öffnen" Width="180" Click="OpenOut_Click"/>
-        </StackPanel>
+        <Button x:Name="PickFilesBtn" Content="Dateien auswählen…" Width="180" Click="PickFiles_Click"/>
         <ProgressBar x:Name="Progress" Height="16" Minimum="0" Maximum="100" Margin="0,12,0,0"/>
         <TextBlock x:Name="StatusText" Margin="0,6,0,0" />
       </StackPanel>
