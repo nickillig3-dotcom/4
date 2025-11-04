@@ -123,14 +123,14 @@ namespace AutoShortsPro.App.Views
 
         private void UpdateCount()
         {
-            int n = Overlay.Children.OfType<Rectangle>().Count();
+            int n = Overlay.Children.OfType<System.Windows.Shapes.Rectangle>().Count();
             CountText.Text = $"Boxen: {n}";
         }
 
         private List<CvRect> CollectRects()
         {
             var list = new List<CvRect>();
-            foreach (var s in Overlay.Children.OfType<Rectangle>())
+            foreach (var s in Overlay.Children.OfType<System.Windows.Shapes.Rectangle>())
             {
                 var x = (int)Math.Round(Canvas.GetLeft(s));
                 var y = (int)Math.Round(Canvas.GetTop(s));
@@ -156,6 +156,7 @@ namespace AutoShortsPro.App.Views
         }
     }
 }
+
 
 
 
