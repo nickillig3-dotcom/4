@@ -1,7 +1,7 @@
 ﻿<Window x:Class="AutoShortsPro.App.Views.ImageReviewWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Prüfen & Korrigieren (Bild)" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner">
+        Title="Prüfen &amp; Korrigieren (Bild)" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner">
   <DockPanel>
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8">
       <TextBlock Text="Links ziehen: neue Box  •  Rechtsklick: Box löschen" VerticalAlignment="Center"/>
