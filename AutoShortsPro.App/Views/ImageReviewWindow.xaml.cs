@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Controls;
 // Alias für OpenCvSharp.Rect, keine globale using OpenCvSharp (vermeidet Konflikte)
 using CvRect = OpenCvSharp.Rect;
 
@@ -153,3 +154,4 @@ namespace AutoShortsPro.App.Views
         }
     }
 }
+
