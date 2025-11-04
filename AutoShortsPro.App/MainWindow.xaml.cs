@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
 using AutoShortsPro.App.Services;
+using AutoShortsPro.App.Views;
 
 namespace AutoShortsPro.App
 {
@@ -67,7 +68,7 @@ namespace AutoShortsPro.App
 
         private static string GetOutPath(string inputPath)
         {
-            var dir = Path.GetDirectoryName(inputPath)!;
+            var dir = Path.GetDirectoryName(inputPath) ?? Environment.CurrentDirectory;
             var fn = Path.GetFileNameWithoutExtension(inputPath);
             var ext = Path.GetExtension(inputPath);
             return Path.Combine(dir, fn + "_blurred" + ext);
@@ -87,6 +88,7 @@ namespace AutoShortsPro.App
 
             bool addWatermark = !LicenseService.IsPro;
             bool preferDnn    = DnnFaceCheck.IsChecked == true;
+            bool reviewImages = ReviewImagesCheck.IsChecked == true;
 
             int i = 0;
             foreach (var f in files)
@@ -95,9 +97,35 @@ namespace AutoShortsPro.App
                 try
                 {
                     if (IsVideo(f))
-                        await Task.Run(() => VideoProcessor.ProcessVideo(f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark, preferDnn));
+                    {
+                        await Task.Run(() => VideoProcessor.ProcessVideo(
+                            f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark, preferDnn));
+                    }
                     else
-                        await Task.Run(() => BlurEngine.ProcessImage(f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark, preferDnn));
+                    {
+                        if (reviewImages)
+                        {
+                            List<OpenCvSharp.Rect>? rects = null;
+                            await Dispatcher.InvokeAsync(() =>
+                            {
+                                var win = new ImageReviewWindow(f, preferDnn) { Owner = this };
+                                var ok = win.ShowDialog() == true;
+                                if (ok) rects = win.ResultRects;
+                            });
+
+                            if (rects != null)
+                            {
+                                await Task.Run(() => BlurEngine.ProcessImageWithRects(
+                                    f, outPath, rects!, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark));
+                            }
+                            // bei Cancel: überspringen
+                        }
+                        else
+                        {
+                            await Task.Run(() => BlurEngine.ProcessImage(
+                                f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark, preferDnn));
+                        }
+                    }
                 }
                 catch (Exception)
                 {
@@ -114,7 +142,7 @@ namespace AutoShortsPro.App
 
         private void BuyPro_Click(object sender, RoutedEventArgs e)
         {
-            var url = "https://www.paypal.com/"; // TODO: echten Link einsetzen
+            var url = "https://www.paypal.com/";
             try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); } catch { }
         }
 

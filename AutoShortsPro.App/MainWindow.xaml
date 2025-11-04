@@ -18,6 +18,7 @@
           <Slider x:Name="BlurSlider" Minimum="11" Maximum="71" Value="35" Width="240" Margin="8,0,0,0"/>
           <CheckBox x:Name="PixelateCheck" Content="Pixelate statt Blur" Margin="16,0,0,0"/>
           <CheckBox x:Name="DnnFaceCheck" Content="Besseres Gesicht (DNN)" Margin="16,0,0,0"/>
+          <CheckBox x:Name="ReviewImagesCheck" Content="Manuell prüfen (Bilder)" Margin="16,0,0,0"/>
         </StackPanel>
         <Button x:Name="PickFilesBtn" Content="Dateien auswählen…" Width="180" Click="PickFiles_Click"/>
         <ProgressBar x:Name="Progress" Height="16" Minimum="0" Maximum="100" Margin="0,12,0,0"/>

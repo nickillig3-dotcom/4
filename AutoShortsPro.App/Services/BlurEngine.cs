@@ -41,10 +41,34 @@ namespace AutoShortsPro.App.Services
 
             if (trialWatermark) TrialWatermark.Apply(img);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+            var outDir = Path.GetDirectoryName(outputPath) ?? Path.GetDirectoryName(inputPath) ?? Environment.CurrentDirectory;
+            Directory.CreateDirectory(outDir);
             Cv2.ImWrite(outputPath, img);
         }
 
+        // NEU: Verarbeitung mit VORGEGEBENEN Boxen (für das Review-Fenster)
+        public static void ProcessImageWithRects(
+            string inputPath,
+            string outputPath,
+            IEnumerable<Rect> rects,
+            int blurKernel = 35,
+            bool pixelate = false,
+            bool trialWatermark = false)
+        {
+            using var img = Cv2.ImRead(inputPath);
+            if (img.Empty()) throw new Exception("Bild konnte nicht geladen werden: " + inputPath);
+
+            foreach (var r in rects)
+                ApplyBlur(img, r, blurKernel, pixelate);
+
+            if (trialWatermark) TrialWatermark.Apply(img);
+
+            var outDir = Path.GetDirectoryName(outputPath) ?? Path.GetDirectoryName(inputPath) ?? Environment.CurrentDirectory;
+            Directory.CreateDirectory(outDir);
+            Cv2.ImWrite(outputPath, img);
+        }
+
+        // Aktuelle Erkennung (DNN-Face optional, plus Nummernschilder via Haar)
         public static List<Rect> DetectRegions(Mat frame, bool preferDnnFaces = false)
         {
             var faces = preferDnnFaces && File.Exists(FaceProto) && File.Exists(FaceModel)
