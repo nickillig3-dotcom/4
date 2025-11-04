@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
 using AutoShortsPro.App.Services;
+using System.Diagnostics;
 
 namespace AutoShortsPro.App
 {
@@ -85,6 +86,7 @@ namespace AutoShortsPro.App
             Progress.Value = 0;
             StatusText.Text = $"Starte… (0/{files.Count})";
 
+            bool addWatermark = !LicenseService.IsPro;
             int i = 0;
             foreach (var f in files)
             {
@@ -92,9 +94,9 @@ namespace AutoShortsPro.App
                 try
                 {
                     if (IsVideo(f))
-                        await Task.Run(() => VideoProcessor.ProcessVideo(f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true));
+                        await Task.Run(() => VideoProcessor.ProcessVideo(f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark));
                     else
-                        await Task.Run(() => BlurEngine.ProcessImage(f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true));
+                        await Task.Run(() => BlurEngine.ProcessImage(f, outPath, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark));
                 }
                 catch (Exception)
                 {
@@ -107,6 +109,24 @@ namespace AutoShortsPro.App
             }
 
             MessageBox.Show("Verarbeitung abgeschlossen.", "GDPR Blur Pro");
+        }
+
+        private void BuyPro_Click(object sender, RoutedEventArgs e)
+        {
+            var url = "https://www.paypal.com/"; // TODO: echten Link einsetzen
+            try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch { }
+        }
+
+        private void LoadLicense_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new OpenFileDialog { Filter = "Lizenzdatei|*.lic;*.json|Alle Dateien|*.*" };
+            if (dlg.ShowDialog() == true)
+            {
+                if (LicenseService.LoadAndVerify(dlg.FileName))
+                    MessageBox.Show("Lizenz akzeptiert. Pro aktiviert.", "Lizenz");
+                else
+                    MessageBox.Show("Lizenz ungültig.", "Lizenz", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

@@ -16,7 +16,7 @@ namespace AutoShortsPro.App.Services
         private static readonly Lazy<CascadeClassifier> PlateCascade = new Lazy<CascadeClassifier>(() =>
             new CascadeClassifier(Path.Combine(CascadeDir, "haarcascade_russian_plate_number.xml")));
 
-        public static void ProcessImage(string inputPath, string outputPath, int blurKernel = 35, bool pixelate = false)
+        public static void ProcessImage(string inputPath, string outputPath, int blurKernel = 35, bool pixelate = false, bool trialWatermark = false)
         {
             using var img = Cv2.ImRead(inputPath);
             if (img.Empty()) throw new Exception("Bild konnte nicht geladen werden: " + inputPath);
@@ -24,6 +24,8 @@ namespace AutoShortsPro.App.Services
             var rects = DetectRegions(img);
             foreach (var r in rects)
                 ApplyBlur(img, r, blurKernel, pixelate);
+
+            if (trialWatermark) TrialWatermark.Apply(img);
 
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
             Cv2.ImWrite(outputPath, img);

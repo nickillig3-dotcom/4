@@ -3,17 +3,25 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="GDPR Blur Pro" Height="560" Width="880"
         AllowDrop="True" Drop="MainWindow_Drop">
-  <Grid Margin="16">
-    <StackPanel>
-      <TextBlock Text="Dateien hierher ziehen oder &quot;Dateien auswählen…&quot; klicken" FontSize="18" Margin="0,0,0,12"/>
-      <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-        <TextBlock Text="Blur:" VerticalAlignment="Center"/>
-        <Slider x:Name="BlurSlider" Minimum="11" Maximum="71" Value="35" Width="240" Margin="8,0,0,0"/>
-        <CheckBox x:Name="PixelateCheck" Content="Pixelate statt Blur" Margin="16,0,0,0"/>
+  <DockPanel LastChildFill="True">
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="_Lizenz">
+        <MenuItem Header="_Lizenz laden..." Click="LoadLicense_Click"/>
+        <MenuItem Header="_Pro kaufen" Click="BuyPro_Click"/>
+      </MenuItem>
+    </Menu>
+    <Grid Margin="16">
+      <StackPanel>
+        <TextBlock Text="Dateien hierher ziehen oder &quot;Dateien auswählen…&quot; klicken" FontSize="18" Margin="0,0,0,12"/>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <TextBlock Text="Blur:" VerticalAlignment="Center"/>
+          <Slider x:Name="BlurSlider" Minimum="11" Maximum="71" Value="35" Width="240" Margin="8,0,0,0"/>
+          <CheckBox x:Name="PixelateCheck" Content="Pixelate statt Blur" Margin="16,0,0,0"/>
+        </StackPanel>
+        <Button x:Name="PickFilesBtn" Content="Dateien auswählen…" Width="180" Click="PickFiles_Click"/>
+        <ProgressBar x:Name="Progress" Height="16" Minimum="0" Maximum="100" Margin="0,12,0,0"/>
+        <TextBlock x:Name="StatusText" Margin="0,6,0,0" />
       </StackPanel>
-      <Button x:Name="PickFilesBtn" Content="Dateien auswählen…" Width="180" Click="PickFiles_Click"/>
-      <ProgressBar x:Name="Progress" Height="16" Minimum="0" Maximum="100" Margin="0,12,0,0"/>
-      <TextBlock x:Name="StatusText" Margin="0,6,0,0" />
-    </StackPanel>
-  </Grid>
+    </Grid>
+  </DockPanel>
 </Window>

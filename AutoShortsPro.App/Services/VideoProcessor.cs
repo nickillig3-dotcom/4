@@ -6,7 +6,7 @@ namespace AutoShortsPro.App.Services
 {
     public static class VideoProcessor
     {
-        public static void ProcessVideo(string inputPath, string outputPath, int blurKernel = 35, bool pixelate = false)
+        public static void ProcessVideo(string inputPath, string outputPath, int blurKernel = 35, bool pixelate = false, bool trialWatermark = false)
         {
             using var cap = new VideoCapture(inputPath);
             if (!cap.IsOpened()) throw new Exception("Video konnte nicht geöffnet werden: " + inputPath);
@@ -33,9 +33,7 @@ namespace AutoShortsPro.App.Services
 
                     using var sub = new Mat(frame, safe);
                     if (!pixelate)
-                    {
                         Cv2.GaussianBlur(sub, sub, new Size(k, k), 0);
-                    }
                     else
                     {
                         using var tmp = new Mat();
@@ -43,6 +41,8 @@ namespace AutoShortsPro.App.Services
                         Cv2.Resize(tmp, sub, new Size(sub.Width, sub.Height), 0, 0, InterpolationFlags.Nearest);
                     }
                 }
+
+                if (trialWatermark) TrialWatermark.Apply(frame);
 
                 writer.Write(frame);
             }
