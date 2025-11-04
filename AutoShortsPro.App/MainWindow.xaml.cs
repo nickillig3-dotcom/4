@@ -5,8 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using Microsoft.Win32;
 using AutoShortsPro.App.Services;
+using AutoShortsPro.App.Views;
 using WinForms = System.Windows.Forms;
 
 namespace AutoShortsPro.App
@@ -20,11 +20,11 @@ namespace AutoShortsPro.App
             try
             {
                 var s = SettingsService.Load();
-                BlurSlider.Value = s.BlurKernel;
-                PixelateCheck.IsChecked = s.Pixelate;
-                DnnFaceCheck.IsChecked = s.PreferDnn;
-                ReviewImagesCheck.IsChecked = s.ReviewImages;
-                OutDirBox.Text = s.OutputDir ?? string.Empty;
+                BlurSlider.Value               = s.BlurKernel;
+                PixelateCheck.IsChecked        = s.Pixelate;
+                DnnFaceCheck.IsChecked         = s.PreferDnn;
+                ReviewImagesCheck.IsChecked    = s.ReviewImages;
+                if (!string.IsNullOrWhiteSpace(s.OutputDir)) OutDirBox.Text = s.OutputDir!;
             }
             catch { }
 
@@ -37,11 +37,11 @@ namespace AutoShortsPro.App
             {
                 var s = new SettingsService.Model
                 {
-                    BlurKernel = (int)BlurSlider.Value,
-                    Pixelate = PixelateCheck.IsChecked == true,
-                    PreferDnn = DnnFaceCheck.IsChecked == true,
+                    BlurKernel   = (int)BlurSlider.Value,
+                    Pixelate     = PixelateCheck.IsChecked == true,
+                    PreferDnn    = DnnFaceCheck.IsChecked == true,
                     ReviewImages = ReviewImagesCheck.IsChecked == true,
-                    OutputDir = string.IsNullOrWhiteSpace(OutDirBox.Text) ? null : OutDirBox.Text
+                    OutputDir    = string.IsNullOrWhiteSpace(OutDirBox.Text) ? null : OutDirBox.Text
                 };
                 SettingsService.Save(s);
             }
@@ -50,7 +50,7 @@ namespace AutoShortsPro.App
 
         private async void PickFiles_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog
+            var dlg = new Microsoft.Win32.OpenFileDialog
             {
                 Multiselect = true,
                 Filter = "Bilder/Videos|*.jpg;*.jpeg;*.png;*.bmp;*.tif;*.tiff;*.mp4;*.mov;*.avi;*.mkv;*.wmv|Alle Dateien|*.*"
@@ -163,7 +163,7 @@ namespace AutoShortsPro.App
                             System.Collections.Generic.List<OpenCvSharp.Rect>? rects = null;
                             await Dispatcher.InvokeAsync(() =>
                             {
-                                var win = new Views.ImageReviewWindow(f, preferDnn) { Owner = this };
+                                var win = new ImageReviewWindow(f, preferDnn) { Owner = this };
                                 var ok = win.ShowDialog() == true;
                                 if (ok) rects = win.ResultRects;
                             });
@@ -202,7 +202,7 @@ namespace AutoShortsPro.App
 
         private void LoadLicense_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog { Filter = "Lizenzdatei|*.lic;*.json|Alle Dateien|*.*" };
+            var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Lizenzdatei|*.lic;*.json|Alle Dateien|*.*" };
             if (dlg.ShowDialog() == true)
             {
                 if (LicenseService.LoadAndVerify(dlg.FileName))
@@ -224,6 +224,3 @@ namespace AutoShortsPro.App
         }
     }
 }
-
-
-

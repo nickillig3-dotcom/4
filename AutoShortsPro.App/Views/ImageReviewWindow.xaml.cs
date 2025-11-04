@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using SWM = System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using WpfRectangle = System.Windows.Shapes.Rectangle;
-using System.Windows.Controls;
-// Alias für OpenCvSharp.Rect, keine globale using OpenCvSharp (vermeidet Konflikte)
+using OpenCvSharp;
 using CvRect = OpenCvSharp.Rect;
 
 namespace AutoShortsPro.App.Views
@@ -20,7 +17,7 @@ namespace AutoShortsPro.App.Views
         private readonly bool _preferDnn;
 
         private System.Windows.Point? _dragStart;
-        private WpfRectangle? _currentRectShape;
+        private System.Windows.Shapes.Rectangle? _currentRectShape;
 
         public List<CvRect> ResultRects { get; private set; } = new();
 
@@ -42,7 +39,7 @@ namespace AutoShortsPro.App.Views
 
             try
             {
-                using var m = OpenCvSharp.Cv2.ImRead(imagePath);
+                using var m = Cv2.ImRead(imagePath);
                 var boxes = Services.BlurEngine.DetectRegions(m, _preferDnn);
                 foreach (var r in boxes) AddRectShape(r);
                 UpdateCount();
@@ -52,30 +49,30 @@ namespace AutoShortsPro.App.Views
 
         private void AddRectShape(CvRect r)
         {
-            var shape = new Rectangle
+            var shape = new System.Windows.Shapes.Rectangle
             {
                 Width = r.Width,
                 Height = r.Height,
-                Stroke = SWM.Brushes.Yellow,
+                Stroke = System.Windows.Media.Brushes.Yellow,
                 StrokeThickness = 2,
-                Fill = new SWM.SolidColorBrush(SWM.Color.FromArgb(40, 255, 255, 0))
+                Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(40, 255, 255, 0))
             };
             Canvas.SetLeft(shape, r.X);
             Canvas.SetTop(shape, r.Y);
             Overlay.Children.Add(shape);
         }
 
-        private void Overlay_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void Overlay_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             _dragStart = e.GetPosition(Overlay);
-            _currentRectShape = new Rectangle
+            _currentRectShape = new System.Windows.Shapes.Rectangle
             {
-                Stroke = SWM.Brushes.DeepSkyBlue,
+                Stroke = System.Windows.Media.Brushes.DeepSkyBlue,
                 StrokeThickness = 2,
-                Fill = new SWM.SolidColorBrush(SWM.Color.FromArgb(40, 30, 144, 255))
+                Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(40, 30, 144, 255))
             };
             Overlay.Children.Add(_currentRectShape);
-            CaptureMouse();
+            Overlay.CaptureMouse();
         }
 
         private void Overlay_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
@@ -97,24 +94,24 @@ namespace AutoShortsPro.App.Views
             _currentRectShape.Height = h;
         }
 
-        private void Overlay_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void Overlay_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (_dragStart == null || _currentRectShape == null) { ReleaseMouseCapture(); return; }
+            if (_dragStart == null || _currentRectShape == null) { Overlay.ReleaseMouseCapture(); return; }
 
-            _currentRectShape.Stroke = SWM.Brushes.Yellow;
-            _currentRectShape.Fill = new SWM.SolidColorBrush(SWM.Color.FromArgb(40, 255, 255, 0));
+            _currentRectShape.Stroke = System.Windows.Media.Brushes.Yellow;
+            _currentRectShape.Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(40, 255, 255, 0));
 
             _dragStart = null;
             _currentRectShape = null;
-            ReleaseMouseCapture();
+            Overlay.ReleaseMouseCapture();
             UpdateCount();
         }
 
-        private void Overlay_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        private void Overlay_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            var hit = e.OriginalSource as DependencyObject;
-            while (hit != null && hit is not WpfRectangle) hit = VisualTreeHelper.GetParent(hit);
-            if (hit is WpfRectangle rect)
+            var hit = e.OriginalSource as System.Windows.DependencyObject;
+            while (hit != null && hit is not System.Windows.Shapes.Rectangle) hit = VisualTreeHelper.GetParent(hit);
+            if (hit is System.Windows.Shapes.Rectangle rect)
             {
                 Overlay.Children.Remove(rect);
                 UpdateCount();
@@ -156,7 +153,3 @@ namespace AutoShortsPro.App.Views
         }
     }
 }
-
-
-
-
