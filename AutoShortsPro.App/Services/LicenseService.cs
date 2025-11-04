@@ -10,7 +10,13 @@ namespace AutoShortsPro.App.Services
     {
         // Platzhalter – später echten Public Key einfügen
         private static readonly string PublicKeyPem = @"-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwb+6x9+dummyplaceholderkey+7x
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxhVSJdWProQo+iHgbU9q
+8GmzRQtg6KJ3FPQWWvu0PNrg0yq+j2pJQWT3KDgqCfUkErR94kQ2K1q9yRu7RftU
+ITX3yv6U9JBEfA/4NfJ41SmiMlUprJOh0JPoUXCdDpPdJilxhAi008QgJ7cjh5Za
+zzkTOwxPX1gZfqtsqQxA0ehZwta0PfSBDEY05wZ1HkWSWM5l9zE8raRl3OG4UDZq
+CORRTiD/lCopoXjfa9eq4+7zRE1DJt0FPV5e5KNIbRTtSAKHBuV94Apg33QOsR+J
+yAZP/6Jq9tX2T6RyX/Ppovgm1k9ERNPgeIyT1sFOAIgT6kkIvpe4oWHb02dZHfko
+cQIDAQAB
 -----END PUBLIC KEY-----";
 
         private static bool _isPro = false;
@@ -54,3 +60,4 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwb+6x9+dummyplaceholderkey+7x
         public string sig { get; set; } = "";
     }
 }
+

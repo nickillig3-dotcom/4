@@ -23,3 +23,9 @@ packages/
 *.opendb
 *.DS_Store
 Thumbs.db
+# Licensing / Keys / Build Artifacts
+*.lic
+*.pem
+tools/LicGen/bin/
+tools/LicGen/obj/
+publish-win/
