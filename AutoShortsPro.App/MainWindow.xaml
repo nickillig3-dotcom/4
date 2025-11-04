@@ -9,6 +9,9 @@
         <MenuItem Header="_Lizenz laden..." Click="LoadLicense_Click"/>
         <MenuItem Header="_Pro kaufen" Click="BuyPro_Click"/>
       </MenuItem>
+      <MenuItem Header="_Hilfe">
+        <MenuItem Header="_Über..." Click="About_Click"/>
+      </MenuItem>
     </Menu>
     <Grid Margin="16">
       <StackPanel>

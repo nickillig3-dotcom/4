@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
 using AutoShortsPro.App.Services;
-using AutoShortsPro.App.Views;
 
 namespace AutoShortsPro.App
 {
@@ -15,6 +14,35 @@ namespace AutoShortsPro.App
         public MainWindow()
         {
             InitializeComponent();
+
+            // Einstellungen laden
+            try
+            {
+                var s = SettingsService.Load();
+                BlurSlider.Value = s.BlurKernel;
+                PixelateCheck.IsChecked = s.Pixelate;
+                DnnFaceCheck.IsChecked = s.PreferDnn;
+                ReviewImagesCheck.IsChecked = s.ReviewImages;
+            }
+            catch { }
+
+            this.Closing += MainWindow_Closing;
+        }
+
+        private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            try
+            {
+                var s = new SettingsService.Model
+                {
+                    BlurKernel = (int)BlurSlider.Value,
+                    Pixelate = PixelateCheck.IsChecked == true,
+                    PreferDnn = DnnFaceCheck.IsChecked == true,
+                    ReviewImages = ReviewImagesCheck.IsChecked == true
+                };
+                SettingsService.Save(s);
+            }
+            catch { }
         }
 
         private async void PickFiles_Click(object sender, RoutedEventArgs e)
@@ -105,10 +133,10 @@ namespace AutoShortsPro.App
                     {
                         if (reviewImages)
                         {
-                            List<OpenCvSharp.Rect>? rects = null;
+                            System.Collections.Generic.List<OpenCvSharp.Rect>? rects = null;
                             await Dispatcher.InvokeAsync(() =>
                             {
-                                var win = new ImageReviewWindow(f, preferDnn) { Owner = this };
+                                var win = new Views.ImageReviewWindow(f, preferDnn) { Owner = this };
                                 var ok = win.ShowDialog() == true;
                                 if (ok) rects = win.ResultRects;
                             });
@@ -118,7 +146,6 @@ namespace AutoShortsPro.App
                                 await Task.Run(() => BlurEngine.ProcessImageWithRects(
                                     f, outPath, rects!, (int)BlurSlider.Value, PixelateCheck.IsChecked == true, addWatermark));
                             }
-                            // bei Cancel: überspringen
                         }
                         else
                         {
@@ -156,6 +183,17 @@ namespace AutoShortsPro.App
                 else
                     MessageBox.Show("Lizenz ungültig.", "Lizenz", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void About_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var asm = System.Reflection.Assembly.GetExecutingAssembly();
+                var ver = asm.GetName().Version?.ToString() ?? "n/a";
+                MessageBox.Show($"GDPR Blur Pro\nVersion {ver}\n© 2025", "Über");
+            }
+            catch { }
         }
     }
 }

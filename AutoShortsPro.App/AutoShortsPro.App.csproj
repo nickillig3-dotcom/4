@@ -5,7 +5,11 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+    <Version>0.1.0</Version>
+  <Company>nickillig3-dotcom</Company>
+  <Product>GDPR Blur Pro</Product>
+  <Description>Offline-Tool zum Unkenntlichmachen von Gesichtern/Kennzeichen (WPF/.NET)</Description>
+</PropertyGroup>
   <ItemGroup>
     <None Update="Assets\cascades\*.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -21,3 +25,4 @@
     </None>
   </ItemGroup>
 </Project>
+
